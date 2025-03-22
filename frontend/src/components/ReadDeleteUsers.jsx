@@ -6,42 +6,59 @@ export default function ReadDeleteUsers({ refresh, buttonClass = "btn btn-danger
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
 
+    // Function to fetch users
     const fetchUsers = async () => {
         try {
             const response = await axios.get("http://localhost:3000/users");
             setUsers(response.data);
+            setError(""); // Clear error on success
         } catch (err) {
-            setError("Error fetching users: " + (err.response?.data?.error || err.message));
+            setError("❌ Error fetching users: " + (err.response?.data?.error || err.message));
         }
     };
 
     useEffect(() => {
         fetchUsers();
-    }, [refresh]);
+    }, [refresh]); // Refresh users when 'refresh' changes
 
-    const handleDelete = async (id) => {
+    // Function to handle user deletion
+    const handleDelete = async (id, name) => {
+        if (!window.confirm(`Are you sure you want to delete ${name}?`)) return;
+
         try {
             await axios.delete(`http://localhost:3000/users/${id}`);
-            fetchUsers();
-            setMessage(`User with ID ${id} deleted successfully.`);
+            fetchUsers(); // Refresh user list after deletion
+            setMessage(`✅ User '${name}' deleted successfully.`);
         } catch (error) {
-            setMessage("Error: " + (error.response?.data?.error || error.message));
+            setMessage("❌ Error: " + (error.response?.data?.error || error.message));
         }
     };
 
     return (
-        <div>
-            <h2>Users List</h2>
-            {error && <p>{error}</p>}
-            {message && <p>{message}</p>}
-            <ul>
-                {users.map((user) => (
-                    <li key={user.id}>
-                        User ID: {user.id}, Name: {user.name}, Email: {user.email}
-                        <button onClick={() => handleDelete(user.id)} className={buttonClass}>Delete</button>
-                    </li>
-                ))}
-            </ul>
+        <div className="p-3 border rounded bg-light my-3">
+            <h2 className="text-danger">Users List</h2>
+
+            {/* Error & Success Messages */}
+            {error && <p className="text-danger">{error}</p>}
+            {message && <p className="text-success">{message}</p>}
+
+            {/* User List */}
+            {users.length === 0 ? (
+                <p className="text-muted">No users found.</p>
+            ) : (
+                <ul className="list-group">
+                    {users.map((user) => (
+                        <li key={user.id} className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <strong>{user.name}</strong> ({user.email})
+                            </span>
+                            <button onClick={() => handleDelete(user.id, user.name)} className={buttonClass}>
+                                Delete
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }

@@ -11,27 +11,32 @@ export default function UpdateUser({ onUserUpdated, buttonClass = "btn btn-warni
         event.preventDefault();
         setMessage("");
 
+        if (!id || !name || !email) {
+            setMessage("⚠️ All fields are required!");
+            return;
+        }
+
         try {
-            const response = await axios.put(`http://localhost:3000/users/${id}`, {
-                name,
-                email,
-            });
-            setMessage("User updated successfully: " + response.data.id);
+            const response = await axios.put(`http://localhost:3000/users/${id}`, { name, email });
+            setMessage(`✅ User updated successfully: ${response.data.id}`);
             setId("");
             setName("");
             setEmail("");
-            if (onUserUpdated) onUserUpdated(); // Calling the update function
+            if (onUserUpdated) onUserUpdated(); // Refresh list if function is provided
         } catch (error) {
-            setMessage("Error: " + (error.response?.data?.error || error.message));
+            setMessage("❌ Error: " + (error.response?.data?.error || error.message));
         }
     };
 
     return (
-        <div>
-            <h2>Update User</h2>
-            <form onSubmit={handleUpdate}>
+        <div className="p-3 border rounded bg-light my-3">
+            <h2 className="text-warning">Update User</h2>
+
+            {/* Form for Updating User */}
+            <form onSubmit={handleUpdate} className="mb-3">
                 <input
                     type="text"
+                    className="form-control mb-2"
                     placeholder="User ID"
                     value={id}
                     onChange={(e) => setId(e.target.value)}
@@ -39,6 +44,7 @@ export default function UpdateUser({ onUserUpdated, buttonClass = "btn btn-warni
                 />
                 <input
                     type="text"
+                    className="form-control mb-2"
                     placeholder="Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -46,6 +52,7 @@ export default function UpdateUser({ onUserUpdated, buttonClass = "btn btn-warni
                 />
                 <input
                     type="email"
+                    className="form-control mb-2"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -53,7 +60,9 @@ export default function UpdateUser({ onUserUpdated, buttonClass = "btn btn-warni
                 />
                 <button type="submit" className={buttonClass}>Update</button>
             </form>
-            {message && <p>{message}</p>}
+
+            {/* Display messages */}
+            {message && <p className={`alert ${message.includes("Error") ? "alert-danger" : "alert-success"}`}>{message}</p>}
         </div>
     );
 }
